@@ -336,6 +336,14 @@ class GestureRecognizerHelper(
         val inputImageWidth: Int,
     )
 
+    data class BoundingBox(
+        val left: Float,
+        val top: Float,
+        val right: Float,
+        val bottom: Float
+    )
+
+
     interface GestureRecognizerListener {
 
         fun onError(error: String, errorCode: Int = OTHER_ERROR)

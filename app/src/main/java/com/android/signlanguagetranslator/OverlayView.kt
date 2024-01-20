@@ -7,9 +7,9 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult
-import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import kotlin.math.max
 import kotlin.math.min
 
@@ -47,9 +47,21 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.style = Paint.Style.FILL
     }
 
+    private fun convertBoundingBox(landmarks: List<NormalizedLandmark>): GestureRecognizerHelper.BoundingBox {
+        // Assuming the landmark contains information about the bounding box.
+        // Adjust the indices based on your actual landmark structure.
+        val left = landmarks.minByOrNull { it.x() }?.x() ?: 0f
+        val top = landmarks.minByOrNull { it.y() }?.y() ?: 0f
+        val right = landmarks.maxByOrNull { it.x() }?.x() ?: 0f
+        val bottom = landmarks.maxByOrNull { it.y() }?.y() ?: 0f
+
+
+        return GestureRecognizerHelper.BoundingBox(left, top, right, bottom)
+    }
+
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        results?.let { gestureRecognizerResult ->
+        /*results?.let { gestureRecognizerResult ->
             for(landmark in gestureRecognizerResult.landmarks()) {
                 for(normalizedLandmark in landmark) {
                     canvas.drawPoint(
@@ -66,6 +78,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                         gestureRecognizerResult.landmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
                         linePaint)
                 }
+            }
+        }*/
+        results?.let { gestureRecognizerResult ->
+            for (landmark in gestureRecognizerResult.landmarks()) {
+                val boundingBox = convertBoundingBox(landmark)
+                canvas.drawRect(
+                    boundingBox.left * imageWidth * scaleFactor,
+                    boundingBox.top * imageHeight * scaleFactor,
+                    boundingBox.right * imageWidth * scaleFactor,
+                    boundingBox.bottom * imageHeight * scaleFactor,
+                    linePaint
+                )
             }
         }
     }
