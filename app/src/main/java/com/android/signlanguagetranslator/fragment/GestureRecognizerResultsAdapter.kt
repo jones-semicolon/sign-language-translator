@@ -1,25 +1,10 @@
-/*
- * Copyright 2022 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *             http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.signlanguagetranslator.fragment
 
 import android.annotation.SuppressLint
-import android.os.Handler
-import android.os.Looper
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.android.signlanguagetranslator.GestureRecognizerHelper
@@ -27,9 +12,6 @@ import com.android.signlanguagetranslator.MainViewModel
 import com.android.signlanguagetranslator.databinding.ItemGestureRecognizerResultBinding
 import com.google.mediapipe.tasks.components.containers.Category
 import com.google.mediapipe.tasks.vision.core.RunningMode
-import java.util.Timer
-import java.util.TimerTask
-import java.util.concurrent.ScheduledExecutorService
 import kotlin.math.min
 
 class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
@@ -42,34 +24,10 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     private var adapterCategories: MutableList<Category?> = mutableListOf()
     private var adapterSize: Int = 0
     private var resultList: MutableList<String> = mutableListOf()
-    private var isTaskRunning: Boolean = false
-    private var executorService: ScheduledExecutorService? = null
-    private val handler = Handler(Looper.getMainLooper())
-    private var lastAddedLabel: String? = null
     private var confidence: Float? = null
-
-
-
-    /*private val runnableTask = Runnable {
-        isTaskRunning = false
-        resultList.clear()
-        Log.d("TASK", "TASK RUNNING")
-    }*/
-    private val delayedAddLabelTask = Runnable {
-        isTaskRunning = false
-        notifyDataSetChanged()
-        Log.d("TIMER", "Label added at: ${System.currentTimeMillis()}")
-    }
-
-    private val delayedClearTask = Runnable {
-        clearResultList()
-        notifyDataSetChanged()
-        Log.d("TIMER", "resultList cleared at: ${System.currentTimeMillis()}")
-    }
-
-    private fun clearResultList() {
-        resultList.clear()
-    }
+    private var acceptDur: Long =  1000
+    private var currentLabelListener: CurrentLabelListener? = null
+    private var newLabel: String? = null
 
 
     @SuppressLint("NotifyDataSetChanged")
@@ -84,6 +42,8 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             adapterCategories.sortedBy { it?.index() }
             notifyDataSetChanged()
         }
+        // Update the current label whenever the results are updated
+        currentLabelListener?.onCurrentLabelChanged(getCurrentLabel())
     }
 
 
@@ -94,6 +54,15 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
 
     fun updateConfidence(_confidence: Float) {
         confidence = _confidence
+    }
+
+    fun getCurrentLabel(): String {
+        Log.d("RESULT",resultList.joinToString(""))
+        return resultList.joinToString("")
+    }
+
+    fun setCurrentLabelListener(listener: CurrentLabelListener) {
+        currentLabelListener = listener
     }
 
     override fun onCreateViewHolder(
@@ -135,119 +104,129 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     inner class ViewHolder(private val binding: ItemGestureRecognizerResultBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        private var scheduledLabel: String? = null
-        private var isHandStable = false
-        private var detectionTimer: Timer? = null
-        private var tempLabel: String? = null
-        private var timerEnd: Boolean = false
-        private var timerCancelled: Boolean = false
-
-
+        private var clearTimer : CountDownTimer? = null
+        private var prevLabel: String? = null
+        private var addTimer: CountDownTimer? = null
         fun bind(label: String?, score: Float?) {
             with(binding) {
-                tvLabel.text = resultList.joinToString("")
-                Log.d("DETECTION", "$label $score $confidence")
-
-                if (label.isNullOrBlank()) {
-                    tempLabel = null
+                if (label.isNullOrEmpty() && resultList.isNullOrEmpty()){
+                    linearLayout.visibility = View.INVISIBLE
                     return
                 }
-                if (label != tempLabel) {
-                    if (detectionTimer == null) detectionTimer = Timer()
-                    Log.d("CHECKING", "FIRST IF")
-                    if (timerCancelled) {
-                        Log.d("CHECKING", "SCHEDULING TIMER")
-                        detectionTimer?.schedule(object : TimerTask() {
-                            override fun run() {
-                                Log.d("CHECKING", "TIMER END")
-                                timerEnd = true
+                val newLabel = label?.replace("space", " ")
+                linearLayout.visibility = View.VISIBLE
+                resultLabel.text = resultList.joinToString("")
+                tvLabel.text = newLabel
+            }
+            // Check if the label is null or empty
+
+            if (label.isNullOrEmpty()) {
+                if(label is String) {
+                    clearTimer?.cancel()
+                    return
+                }
+                // Cancel the add timer
+                log(label?:2::class.simpleName.toString(), "CONTENT CHECKING")
+                addTimer?.cancel()
+
+                // Start a new timer for 5 seconds to clear the result list
+                clearTimer = object : CountDownTimer(5000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        // Do nothing
+                    }
+
+                    override fun onFinish() {
+                        // Clear the result list
+                        resultList.clear()
+                        log("clearing")
+
+                        // Reset the clear timer
+                        clearTimer = null
+                    }
+                }.start()
+            } else {
+                newLabel = label.replace("space", " ")
+
+                // Cancel the clear timer
+                clearTimer?.cancel()
+                if(score!! < confidence!!){
+                    return
+                }
+
+                // Check if the previous label is null or empty
+                if (prevLabel.isNullOrEmpty()) {
+                    log(newLabel!!)
+                    // Assign the label to the previous label
+                    prevLabel = newLabel
+
+                    // Start a new timer for 5 seconds to add the label
+                    addTimer = object : CountDownTimer(acceptDur, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            // Do nothing
+                        }
+
+                        override fun onFinish() {
+                            if(newLabel == "del"){
+                                resultList.removeLastOrNull()
+                                currentLabelListener?.onCurrentLabelChanged(getCurrentLabel())
+                                prevLabel = null
+                                addTimer = null
+                                return
+                            }
+                            // Add the previous label to the result list
+                            resultList.add(prevLabel!!)
+
+                            // Reset the previous label and the add timer
+                            prevLabel = null
+                            addTimer = null
+                        }
+                    }.start()
+                } else {
+                    // Check if the label is equal to the previous label
+                    if (newLabel == prevLabel) {
+                        // Do nothing
+                    } else {
+                        // Cancel the add timer
+                        addTimer?.cancel()
+
+
+                        // Assign the label to the previous label
+                        prevLabel = newLabel
+
+                        // Start a new timer for 5 seconds to add the label
+                        addTimer = object : CountDownTimer(acceptDur, 1000) {
+                            override fun onTick(millisUntilFinished: Long) {
+                                // Do nothing
                             }
 
-                            override fun cancel(): Boolean {
-                                timerCancelled = true
-                                detectionTimer = null
-                                tempLabel = null
-                                return super.cancel()
+                            override fun onFinish() {
+                                if(newLabel == "del"){
+                                    resultList.removeLastOrNull()
+                                    prevLabel = null
+                                    addTimer = null
+                                    return
+                                }
+                                // Add the previous label to the result list
+                                resultList.add(prevLabel!!)
+
+                                // Reset the previous label and the add timer
+                                prevLabel = null
+                                addTimer = null
                             }
-                        }, 5000)
+                        }.start()
                     }
-                    tempLabel = label
-                    timerCancelled = false
-                } else if (label.equals(tempLabel)) {
-                    Log.d("CHECKING", "SECOND IF")
-                    if (!timerEnd) {
-                        Log.d("CHECKING", "SECOND BUT TIMER IF")
-                        return
-                    }
-                    resultList.add(label)
-                    timerEnd = false
-//                    tempLabel = null
-                    if (timerCancelled) return
-                    Log.d("CHECKING", "SECOND IF BUT ELSE")
-//                        timerCancelled = true
-                    detectionTimer?.cancel()
-//                        detectionTimer = null
-                } else {
-                    if (timerCancelled) return
-                    Log.d("CHECKING", "ELSE")
-//                    tempLabel = null
-                    detectionTimer?.cancel()
-//                    detectionTimer = null
-//                    timerCancelled = true
                 }
             }
         }
 
-        private fun startHandStabilityTimer() {
-            isHandStable = false
-            detectionTimer?.cancel() // Cancel any existing timers
-            detectionTimer = Timer()
-            detectionTimer?.schedule(object : TimerTask() {
-                override fun run() {
-                    // The timer has elapsed, consider the hand stable
-                    isHandStable = true
-                    Log.d("TIMER", "Hand stable")
 
-                    // Schedule the detection after the hand is stable
-                    scheduleDetectionTimer()
-                }
-            }, 1000) // Adjust the duration as needed
-        }
 
-        private fun scheduleDetectionTimer() {
-            detectionTimer?.cancel() // Cancel any existing timers
-            detectionTimer = Timer()
-            detectionTimer?.schedule(object : TimerTask() {
-                override fun run() {
-                    // Process the detected label only if the hand is stable and the label matches the latest detected label
-                    if (isHandStable && scheduledLabel == lastAddedLabel) {
-                        processDetectedLabel(scheduledLabel ?: "")
-                        Log.d("TIMER", "Label detection task executed after delay")
-                    }
-                }
-            }, 1000) // Adjust the duration as needed
+        private fun log(msg: String, status: String = "CHECKING"){
+            Log.d(status, msg)
         }
-        private fun processDetectedLabel(label: String) {
-            // Perform the actual processing of the detected label here
-            // For example, you can update your UI or perform other actions.
-            // In this example, we are adding the label to the resultList.
-            addLabel(label)
-        }
-
-        private val delayedClearTask = Runnable {
-            clearResultList()
-            handler.post { notifyDataSetChanged() }
-            Log.d("TIMER", "resultList cleared after delay")
-        }
-
-        private fun addLabel(label: String) {
-            resultList.add(label)
-            handler.post { notifyDataSetChanged() }
-        }
-
-        private fun clearResultList() {
-            resultList.clear()
-        }
+    }
+    interface CurrentLabelListener {
+        fun onCurrentLabelChanged(currentLabel: String?)
     }
 }
 

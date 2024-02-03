@@ -2,14 +2,20 @@ package com.android.signlanguagetranslator.fragment
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.net.Uri
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
@@ -23,6 +29,7 @@ import androidx.camera.core.Preview
 import androidx.camera.core.TorchState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.LiveData
 import androidx.navigation.Navigation
@@ -33,15 +40,13 @@ import com.android.signlanguagetranslator.MainViewModel
 import com.android.signlanguagetranslator.R
 import com.android.signlanguagetranslator.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/**
- * A simple [Fragment] subclass.
- * Use the [CameraFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+
 class CameraFragment : Fragment(),
     GestureRecognizerHelper.GestureRecognizerListener {
 
@@ -62,6 +67,7 @@ class CameraFragment : Fragment(),
             updateAdapterSize(defaultNumResults)
         }
     }
+    private lateinit var gestureResults: GestureRecognizerResultsAdapter
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -71,6 +77,7 @@ class CameraFragment : Fragment(),
     private var cameraInfo: CameraInfo? = null
     private var torchState: LiveData<Int>? = null
     private var cameraControl: CameraControl? = null
+    private var currentLabel: String? = null
 
 
     /** Blocking ML operations are performed using this executor */
@@ -78,16 +85,12 @@ class CameraFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
-        // Make sure that all permissions are still present, since the
-        // user could have removed them while the app was in paused state.
         if (!PermissionsFragment.hasPermissions(requireContext())) {
             Navigation.findNavController(
                 requireActivity(), R.id.fragment_container
             ).navigate(R.id.action_camera_to_permissions)
         }
 
-        // Start the GestureRecognizerHelper again when users come back
-        // to the foreground.
         backgroundExecutor.execute {
             Log.d("PAUSED", gestureRecognizerHelper.isFrontFacing.toString())
             if (gestureRecognizerHelper.isClosed()) {
@@ -123,6 +126,11 @@ class CameraFragment : Fragment(),
     override fun onDestroyView() {
         _fragmentCameraBinding = null
         super.onDestroyView()
+        // Unbind the camera provider
+        cameraProvider?.unbindAll()
+/*// Release the SurfaceView resources
+        fragmentCameraBinding.viewFinder.holder.removeCallback(this)
+        fragmentCameraBinding.viewFinder.release()*/
 
         // Shut down our background executor
         backgroundExecutor.shutdown()
@@ -142,9 +150,11 @@ class CameraFragment : Fragment(),
         return fragmentCameraBinding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        gestureResults = GestureRecognizerResultsAdapter(viewModel)
         with(fragmentCameraBinding.recyclerviewResults) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = gestureRecognizerResultAdapter
@@ -153,8 +163,6 @@ class CameraFragment : Fragment(),
 
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
-        /*        val cameraControl: CameraControl? = camera?.cameraControl
-                val torchState: Int? = cameraInfo?.torchState?.value*/
         backgroundExecutor.execute {
             gestureRecognizerHelper = GestureRecognizerHelper(
                 context = requireContext(),
@@ -175,24 +183,17 @@ class CameraFragment : Fragment(),
             Log.d("TAG", "closed")
         }
 
-
-        // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
-            // Set up the camera and its use cases
             setUpCamera()
         }
-        /* imageCapture = ImageCapture.Builder()
-             .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
-             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-             .setTargetRotation(Surface.ROTATION_0)
-             .build()*/
+
         fragmentCameraBinding.bottomSheetLayout.button3.setOnClickListener{
             rotateCameraLens()
         }
-/*        fragmentCameraBinding.bottomSheetLayout.button2.setOnClickListener{
-            captureImage()
-        }*/
+        fragmentCameraBinding.bottomSheetLayout.button2.setOnClickListener{
+            //capture image
+            takePicture()
+        }
         fragmentCameraBinding.topSheetLayout.button5.setOnClickListener {
             findNavController().navigate(R.id.settings_fragment)
         }
@@ -212,14 +213,12 @@ class CameraFragment : Fragment(),
                 }
             }
         }
-
-        // Create the Hand Gesture Recognition Helper that will handle the
-        // inference
-
-
-        // Attach listeners to UI control widgets
-//        initBottomSheetControls()
     }
+
+    private fun getCurrentLabel(): String {
+        return gestureResults.getCurrentLabel()
+    }
+
 
     private fun rotateCameraLens() {
         // Toggle between front and back camera lenses
@@ -234,20 +233,17 @@ class CameraFragment : Fragment(),
             CameraSelector.LENS_FACING_FRONT
             cameraFacing = 0
         }
-
-        // Re-bind camera use cases with the updated camera lens
         bindCameraUseCases()
-
     }
 
-    // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {
         val cameraProviderFuture =
             ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener(
-            {
+            Runnable {
                 // CameraProvider
                 cameraProvider = cameraProviderFuture.get()
+
 
                 // Build and bind the camera use cases
                 bindCameraUseCases()
@@ -263,26 +259,15 @@ class CameraFragment : Fragment(),
         // CameraProvider
         val cameraProvider = cameraProvider
             ?: throw IllegalStateException("Camera initialization failed.")
-        Log.d("PAUSED", "CAMERA FACING IS FRONT? ${cameraFacing}")
 
         val cameraSelector =
             CameraSelector.Builder().requireLensFacing(cameraFacing).build()
 
-        /*imageCapture?.let { capture ->
-            fragmentCameraBinding.bottomSheetLayout.button2.setOnClickListener {
-                captureImage()
-            }
-        }*/
-
-
-        // Preview. Only using the 4:3 ratio because this is the closest to our models
-        preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+        preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
             .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
             .build()
-
-        // ImageAnalysis. Using RGBA 8888 to match how our models work
         imageAnalyzer =
-            ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                 .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
@@ -293,15 +278,19 @@ class CameraFragment : Fragment(),
                         recognizeHand(image)
                     }
                 }
+        imageCapture = ImageCapture.Builder()
+//            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
+            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+            .build()
 
-        // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll()
 
         try {
             // A variable number of use-cases can be passed here -
             // camera provides access to CameraControl & CameraInfo
             camera = cameraProvider.bindToLifecycle(
-                this, cameraSelector, preview, imageAnalyzer
+                this, cameraSelector, preview, imageAnalyzer, imageCapture
             )
             cameraInfo = camera!!.cameraInfo
             torchState = cameraInfo!!.torchState
@@ -312,6 +301,55 @@ class CameraFragment : Fragment(),
         } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
+    }
+
+    private fun takePicture() {
+        // Check if the image capture use case is null
+        if (imageCapture == null) return
+        // Create a file to store the image
+        val photoFile = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera",
+            "photo_${System.currentTimeMillis()}.jpg")
+        // Create an output options object
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        // Take a picture and save it to the file
+        imageCapture?.takePicture(
+            outputOptions,
+            backgroundExecutor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    // Show a toast message
+                    val msg = "Photo saved to ${photoFile.absolutePath}"
+//                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, msg)
+
+                    val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+                    val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                    val canvas = Canvas(mutableBitmap)
+                    val context = context?.resources
+                    val labelPaint = Paint().apply {
+                        color = Color.WHITE
+                        textSize =
+                            context!!.getDimensionPixelSize(R.dimen.bottom_sheet_text_size).toFloat() * 2 - 12f
+                        textAlign = Paint.Align.CENTER
+                        // Other text properties can be adjusted here
+                    }
+                    canvas.drawText(currentLabel ?: "",  mutableBitmap.width / 2f, mutableBitmap.height - 100f, labelPaint)
+
+
+                    val outputStream = FileOutputStream(photoFile)
+                    mutableBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    outputStream.close()
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    // Show a toast message
+                    val msg = "Photo capture failed: ${exception.message}"
+//                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, msg, exception)
+                }
+            }
+        )
     }
 
     private fun recognizeHand(imageProxy: ImageProxy) {
@@ -326,10 +364,6 @@ class CameraFragment : Fragment(),
             fragmentCameraBinding.viewFinder.display.rotation
     }
 
-    // Update UI after a hand gesture has been recognized. Extracts original
-    // image height/width to scale and place the landmarks properly through
-    // OverlayView. Only one result is expected at a time. If two or more
-    // hands are seen in the camera frame, only one will be processed.
     override fun onResults(
         resultBundle: GestureRecognizerHelper.ResultBundle
     ) {
@@ -341,14 +375,11 @@ class CameraFragment : Fragment(),
                     gestureRecognizerResultAdapter.updateResults(
                         gestureCategories.first()
                     )
+                    currentLabel = gestureRecognizerResultAdapter.getCurrentLabel()
                 } else {
                     gestureRecognizerResultAdapter.updateResults(emptyList())
                 }
 
-                /*fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
-                    String.format("%d ms", resultBundle.inferenceTime)*/
-
-                // Pass necessary information to OverlayView for drawing on the canvas
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
                     resultBundle.inputImageHeight,
@@ -356,7 +387,6 @@ class CameraFragment : Fragment(),
                     RunningMode.LIVE_STREAM
                 )
 
-                // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
             }
         }
@@ -366,12 +396,6 @@ class CameraFragment : Fragment(),
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
             gestureRecognizerResultAdapter.updateResults(emptyList())
-
-            /*if (errorCode == GestureRecognizerHelper.GPU_ERROR) {
-                fragmentSettingsBinding.spinnerDelegate.setSelection(
-                    GestureRecognizerHelper.DELEGATE_CPU, false
-                )
-            }*/
         }
     }
 }

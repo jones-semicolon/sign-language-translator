@@ -14,12 +14,14 @@
         android:paddingLeft="25dp"
         android:paddingTop="15dp"
         android:paddingRight="25dp"
-        android:paddingBottom="15dp">
+        android:paddingBottom="15dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button5"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/bottom_sheet_control_btn_size"
+            android:layout_height="@dimen/bottom_sheet_control_btn_size"
             android:background="@drawable/ic_settings" />
 
         <Space
@@ -29,9 +31,9 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button4"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
-            android:background="@drawable/ic_flash_on" />
+            android:layout_width="@dimen/bottom_sheet_control_btn_size"
+            android:layout_height="@dimen/bottom_sheet_control_btn_size"
+            android:background="@drawable/ic_flash_off" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

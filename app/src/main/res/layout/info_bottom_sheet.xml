@@ -24,15 +24,16 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/bottom_sheet_control_btn_size"
+            android:layout_height="@dimen/bottom_sheet_control_btn_size"
             android:background="@drawable/ic_baseline_photo_library_24"
-            android:text="" />
+            android:text=""
+            android:visibility="gone" />
 
         <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1.5" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button2"
@@ -49,8 +50,8 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button3"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/bottom_sheet_control_btn_size"
+            android:layout_height="@dimen/bottom_sheet_control_btn_size"
             android:background="@android:drawable/stat_notify_sync"
             android:text="" />
 

@@ -6,28 +6,34 @@
     android:layout_height="wrap_content"
     android:background="#00EEEEEE">
 
-    <TextView
-        android:id="@+id/tvLabel"
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@color/cardview_dark_background"
-        android:includeFontPadding="true"
+        android:orientation="horizontal"
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
-        android:textAlignment="center"
-        android:textColor="@color/bottom_sheet_background"
-        android:textSize="@dimen/bottom_sheet_text_size"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
 
-    <TextView
-        android:id="@+id/tvScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/bottom_sheet_text_size"
-        app:barrierMargin="5dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="gone" />
+        <TextView
+            android:id="@+id/resultLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="true"
+            android:textAlignment="center"
+            android:textColor="@color/bottom_sheet_background"
+            android:textSize="@dimen/bottom_sheet_text_size" />
+
+        <TextView
+            android:id="@+id/tvLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="true"
+            android:textColor="@color/icPressed"
+            android:textSize="@dimen/bottom_sheet_text_size" />
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
