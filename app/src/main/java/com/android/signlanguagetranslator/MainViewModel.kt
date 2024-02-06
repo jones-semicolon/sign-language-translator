@@ -1,9 +1,10 @@
 package com.android.signlanguagetranslator
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 
-class MainViewModel : ViewModel() {
+class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private var _delegate: Int = GestureRecognizerHelper.DELEGATE_CPU
     private var _frontFacing: Boolean = GestureRecognizerHelper.ISFRONTFACING
     private var _minHandDetectionConfidence: Float =

@@ -22,7 +22,7 @@
             android:id="@+id/button5"
             android:layout_width="@dimen/bottom_sheet_control_btn_size"
             android:layout_height="@dimen/bottom_sheet_control_btn_size"
-            android:background="@drawable/ic_settings" />
+            android:background="@drawable/baseline_settings_24" />
 
         <Space
             android:layout_width="wrap_content"
@@ -33,7 +33,7 @@
             android:id="@+id/button4"
             android:layout_width="@dimen/bottom_sheet_control_btn_size"
             android:layout_height="@dimen/bottom_sheet_control_btn_size"
-            android:background="@drawable/ic_flash_off" />
+            android:background="@drawable/baseline_flashlight_off_24" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

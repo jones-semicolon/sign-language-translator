@@ -6,13 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.signlanguagetranslator.GestureRecognizerHelper
 import com.android.signlanguagetranslator.MainViewModel
-import com.android.signlanguagetranslator.R
 import com.android.signlanguagetranslator.databinding.FragmentSettingsBinding
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -116,7 +114,8 @@ class SettingsFragment : Fragment() {
         }
 
         fragmentSettingsBinding.button7.setOnClickListener {
-            findNavController().navigate(R.id.camera_fragment)
+//            findNavController().navigate(R.id.camera_fragment)
+            findNavController().popBackStack()
         }
 
         // Attach listeners to UI control widgets

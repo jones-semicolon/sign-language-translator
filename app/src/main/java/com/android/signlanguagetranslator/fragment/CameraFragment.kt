@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -80,7 +81,6 @@ class CameraFragment : Fragment(),
     private var currentLabel: String? = null
 
 
-    /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
 
     override fun onResume() {
@@ -128,9 +128,11 @@ class CameraFragment : Fragment(),
         super.onDestroyView()
         // Unbind the camera provider
         cameraProvider?.unbindAll()
+
 /*// Release the SurfaceView resources
         fragmentCameraBinding.viewFinder.holder.removeCallback(this)
         fragmentCameraBinding.viewFinder.release()*/
+
 
         // Shut down our background executor
         backgroundExecutor.shutdown()
@@ -201,12 +203,12 @@ class CameraFragment : Fragment(),
             when (torchState?.value) {
                 TorchState.ON -> {
                     cameraControl?.enableTorch(false)
-                    fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.ic_flash_off)
+                    fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_off_24)
                 }
 
                 TorchState.OFF -> {
                     cameraControl?.enableTorch(true)
-                    fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.ic_flash_on)
+                    fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_on_24)
                 }
                 null -> {
                     Log.d("TORCHSTATE", torchState.toString())
@@ -320,8 +322,11 @@ class CameraFragment : Fragment(),
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     // Show a toast message
                     val msg = "Photo saved to ${photoFile.absolutePath}"
-//                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    activity?.runOnUiThread {
+                        Toast.makeText(requireContext(), "Image has been saved", Toast.LENGTH_SHORT).show()
+                    }
                     Log.d(TAG, msg)
+                    if (currentLabel.isNullOrEmpty()) return
 
                     val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
                     val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -334,6 +339,11 @@ class CameraFragment : Fragment(),
                         textAlign = Paint.Align.CENTER
                         // Other text properties can be adjusted here
                     }
+                    val bgPaint = Paint().apply {
+                        color = Color.BLACK
+                    }
+                    val bg = RectF((mutableBitmap.width / 2) - labelPaint.measureText(currentLabel) + 2f / 2,(mutableBitmap.height - 100f) - labelPaint.textSize, ((mutableBitmap.width / 2) + labelPaint.measureText(currentLabel) / 2) + 25f, mutableBitmap.height - 100f + 25f)
+                    canvas.drawRoundRect(bg, 10f, 10f, bgPaint)
                     canvas.drawText(currentLabel ?: "",  mutableBitmap.width / 2f, mutableBitmap.height - 100f, labelPaint)
 
 

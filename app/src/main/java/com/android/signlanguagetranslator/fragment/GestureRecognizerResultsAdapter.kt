@@ -25,7 +25,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     private var adapterSize: Int = 0
     private var resultList: MutableList<String> = mutableListOf()
     private var confidence: Float? = null
-    private var acceptDur: Long =  1000
+    private var acceptDur: Long =  2000
     private var currentLabelListener: CurrentLabelListener? = null
     private var newLabel: String? = null
 
