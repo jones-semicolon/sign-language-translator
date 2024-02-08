@@ -7,7 +7,6 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
-import androidx.annotation.OptIn
 import androidx.camera.core.ImageProxy
 import com.google.common.annotations.VisibleForTesting
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -23,7 +22,10 @@ class GestureRecognizerHelper(
     var minHandTrackingConfidence: Float = DEFAULT_HAND_TRACKING_CONFIDENCE,
     var minHandPresenceConfidence: Float = DEFAULT_HAND_PRESENCE_CONFIDENCE,
     var minConfidence: Float = DEFAULT_CONFIDENCE,
+    var minLabelDuration: Float = LABEL_DURATION,
+    var minHandStableDuration: Float = HAND_STABLE_DURATION,
     var currentDelegate: Int = DELEGATE_CPU,
+    var currentHandCoordinate: Int = HAND_COORDINATE_BOUNDING_BOX,
     var runningMode: RunningMode = RunningMode.IMAGE,
     var isFrontFacing: Boolean = ISFRONTFACING,
     val context: Context,
@@ -320,6 +322,8 @@ class GestureRecognizerHelper(
 
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
+        const val HAND_COORDINATE_BONES = 1
+        const val HAND_COORDINATE_BOUNDING_BOX = 0
         const val ISFRONTFACING = true
         const val DEFAULT_HAND_DETECTION_CONFIDENCE = 0.5F
         const val DEFAULT_HAND_TRACKING_CONFIDENCE = 0.5F
@@ -327,6 +331,8 @@ class GestureRecognizerHelper(
         const val DEFAULT_CONFIDENCE = 0.5F
         const val OTHER_ERROR = 0
         const val GPU_ERROR = 1
+        const val LABEL_DURATION = 10f
+        const val HAND_STABLE_DURATION = 5f
     }
 
     data class ResultBundle(

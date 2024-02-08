@@ -6,12 +6,19 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewParent
 import androidx.core.content.ContextCompat
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import kotlin.math.max
 import kotlin.math.min
+
+private val ViewParent.context: Context
+    get() {
+        TODO("Not yet implemented")
+    }
 
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
@@ -23,6 +30,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
+    private var handCoordinate: Int? = null
 
     init {
         initPaints()
@@ -61,38 +69,47 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-//Bones
-        /*results?.let { gestureRecognizerResult ->
-            for(landmark in gestureRecognizerResult.landmarks()) {
-                for(normalizedLandmark in landmark) {
-                    canvas.drawPoint(
-                        normalizedLandmark.x() * imageWidth * scaleFactor,
-                        normalizedLandmark.y() * imageHeight * scaleFactor,
-                        pointPaint)
-                }
 
-                HandLandmarker.HAND_CONNECTIONS.forEach {
-                    canvas.drawLine(
-                        gestureRecognizerResult.landmarks().get(0).get(it!!.start()).x() * imageWidth * scaleFactor,
-                        gestureRecognizerResult.landmarks().get(0).get(it.start()).y() * imageHeight * scaleFactor,
-                        gestureRecognizerResult.landmarks().get(0).get(it.end()).x() * imageWidth * scaleFactor,
-                        gestureRecognizerResult.landmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
-                        linePaint)
+        if (handCoordinate == 1) {
+            //bones
+            results?.let { gestureRecognizerResult ->
+                for (landmark in gestureRecognizerResult.landmarks()) {
+                    for (normalizedLandmark in landmark) {
+                        canvas.drawPoint(
+                            normalizedLandmark.x() * imageWidth * scaleFactor,
+                            normalizedLandmark.y() * imageHeight * scaleFactor,
+                            pointPaint
+                        )
+                    }
+
+                    HandLandmarker.HAND_CONNECTIONS.forEach {
+                        canvas.drawLine(
+                            gestureRecognizerResult.landmarks().get(0).get(it!!.start())
+                                .x() * imageWidth * scaleFactor,
+                            gestureRecognizerResult.landmarks().get(0).get(it.start())
+                                .y() * imageHeight * scaleFactor,
+                            gestureRecognizerResult.landmarks().get(0).get(it.end())
+                                .x() * imageWidth * scaleFactor,
+                            gestureRecognizerResult.landmarks().get(0).get(it.end())
+                                .y() * imageHeight * scaleFactor,
+                            linePaint
+                        )
+                    }
                 }
             }
-        }*/
-
-//Bounding box
-        results?.let { gestureRecognizerResult ->
-            for (landmark in gestureRecognizerResult.landmarks()) {
-                val boundingBox = convertBoundingBox(landmark)
-                canvas.drawRect(
-                    boundingBox.left * imageWidth * scaleFactor,
-                    boundingBox.top * imageHeight * scaleFactor,
-                    boundingBox.right * imageWidth * scaleFactor,
-                    boundingBox.bottom * imageHeight * scaleFactor,
-                    linePaint
-                )
+        }else {
+            //bounding box
+            results?.let { gestureRecognizerResult ->
+                for (landmark in gestureRecognizerResult.landmarks()) {
+                    val boundingBox = convertBoundingBox(landmark)
+                    canvas.drawRect(
+                        boundingBox.left * imageWidth * scaleFactor,
+                        boundingBox.top * imageHeight * scaleFactor,
+                        boundingBox.right * imageWidth * scaleFactor,
+                        boundingBox.bottom * imageHeight * scaleFactor,
+                        linePaint
+                    )
+                }
             }
         }
     }
@@ -101,9 +118,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         gestureRecognizerResult: GestureRecognizerResult,
         imageHeight: Int,
         imageWidth: Int,
-        runningMode: RunningMode = RunningMode.IMAGE
+        runningMode: RunningMode = RunningMode.IMAGE,
+        handCoordinateResult: Int?
     ) {
         results = gestureRecognizerResult
+        handCoordinate = handCoordinateResult?: 0
 
         this.imageHeight = imageHeight
         this.imageWidth = imageWidth

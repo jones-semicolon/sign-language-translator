@@ -61,7 +61,10 @@ class SettingsFragment : Fragment() {
             viewModel.setMinHandPresenceConfidence(gestureRecognizerHelper.minHandPresenceConfidence)
             viewModel.setMinConfidence(gestureRecognizerHelper.minConfidence)
             viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
+            viewModel.setHandCoordinate(gestureRecognizerHelper.currentHandCoordinate)
             viewModel.setIsFacingFront(gestureRecognizerHelper.isFrontFacing)
+            viewModel.setMinHandStableDuration(gestureRecognizerHelper.minHandStableDuration)
+            viewModel.setMinLabelDuration(gestureRecognizerHelper.minLabelDuration)
         }
     }
 
@@ -110,6 +113,9 @@ class SettingsFragment : Fragment() {
                 minConfidence = viewModel.currentMinConfidence,
                 isFrontFacing = viewModel.currentIsFrontFacing,
                 currentDelegate = viewModel.currentDelegate,
+                currentHandCoordinate = viewModel.currentHandCoordinate,
+                minHandStableDuration =  viewModel.currentHandStableDuration,
+                minLabelDuration = viewModel.currentLabelDuration
             )
         }
 
@@ -139,6 +145,14 @@ class SettingsFragment : Fragment() {
         fragmentSettingsBinding.confidenceThresholdValue.text =
             String.format(
                 Locale.US, "%.2f", viewModel.currentMinConfidence
+            )
+        fragmentSettingsBinding.labelDurationValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentLabelDuration
+            )
+        fragmentSettingsBinding.handStableDurationValue.text =
+            String.format(
+                Locale.US, "%.2f", viewModel.currentHandStableDuration
             )
 
         // When clicked, lower hand detection score threshold floor
@@ -205,8 +219,47 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        fragmentSettingsBinding.labelDurationMinus.setOnClickListener {
+            if (gestureRecognizerHelper.minLabelDuration >= 3) {
+                gestureRecognizerHelper.minLabelDuration -= 0.5f
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise hand detection score threshold floor
+        fragmentSettingsBinding.labelDurationPlus.setOnClickListener {
+            if (gestureRecognizerHelper.minLabelDuration <= 10) {
+                gestureRecognizerHelper.minLabelDuration += 0.5f
+                updateControlsUi()
+            }
+        }
+
+        fragmentSettingsBinding.handStableDurationMinus.setOnClickListener {
+            if (gestureRecognizerHelper.minHandStableDuration >= 1) {
+                gestureRecognizerHelper.minHandStableDuration -= 0.5f
+                updateControlsUi()
+            }
+        }
+
+        // When clicked, raise hand detection score threshold floor
+        fragmentSettingsBinding.handStableDurationPlus.setOnClickListener {
+            if (gestureRecognizerHelper.minHandStableDuration <= 10) {
+                gestureRecognizerHelper.minHandStableDuration += 0.5f
+                updateControlsUi()
+            }
+        }
+
         // When clicked, change the underlying hardware used for inference.
         // Current options are CPU and GPU
+        fragmentSettingsBinding.advancedSettingsBut.setOnClickListener{
+            if (fragmentSettingsBinding.advancedSettingsRow.visibility == View.VISIBLE) {
+                fragmentSettingsBinding.advancedSettingsChevron.rotation = 180f
+                fragmentSettingsBinding.advancedSettingsRow.visibility = View.GONE
+            } else {
+                fragmentSettingsBinding.advancedSettingsChevron.rotation = 270f
+                fragmentSettingsBinding.advancedSettingsRow.visibility = View.VISIBLE
+            }
+        }
         fragmentSettingsBinding.spinnerDelegate.setSelection(
             viewModel.currentDelegate, false
         )
@@ -225,7 +278,28 @@ class SettingsFragment : Fragment() {
                 }
 
                 override fun onNothingSelected(p0: AdapterView<*>?) {
-                    /*no op */
+//                    no op
+                }
+            }
+        fragmentSettingsBinding.spinnerHandCoordinate.setSelection(
+            viewModel.currentHandCoordinate, true
+        )
+        fragmentSettingsBinding.spinnerHandCoordinate.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long
+                ) {
+                    try {
+                        gestureRecognizerHelper.currentHandCoordinate = p2
+                        updateControlsUi()
+                    } catch (e: UninitializedPropertyAccessException) {
+                        Log.e(TAG, "GestureRecognizerHelper has not been initialized yet.")
+
+                    }
+                }
+
+                override fun onNothingSelected(p0: AdapterView<*>?) {
+//                    no op
                 }
             }
     }
@@ -253,6 +327,18 @@ class SettingsFragment : Fragment() {
                 Locale.US,
                 "%.2f",
                 gestureRecognizerHelper.minConfidence
+            )
+        fragmentSettingsBinding.labelDurationValue.text =
+            String.format(
+                Locale.US,
+                "%.2f",
+                gestureRecognizerHelper.minLabelDuration
+            )
+        fragmentSettingsBinding.handStableDurationValue.text =
+            String.format(
+                Locale.US,
+                "%.2f",
+                gestureRecognizerHelper.minHandStableDuration
             )
 
         // Needs to be cleared instead of reinitialized because the GPU

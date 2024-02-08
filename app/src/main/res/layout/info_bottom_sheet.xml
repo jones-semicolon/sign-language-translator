@@ -50,8 +50,8 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button3"
-            android:layout_width="@dimen/bottom_sheet_control_btn_size"
-            android:layout_height="@dimen/bottom_sheet_control_btn_size"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
             android:background="@android:drawable/stat_notify_sync"
             android:text="" />
 

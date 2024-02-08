@@ -25,13 +25,21 @@
     <string name="label_hand_confidence_threshold">Confidence
         Threshold</string>
     <string name="label_delegate">Delegate</string>
+    <string name="label_duration">Label duration</string>
+    <string name="hand_stable_duration">Hand Stable duration</string>
+    <string name="hand_coordinate">Hand Coordinate</string>
 
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>
     </string-array>
+    <string-array name="hand_coordinate_spinner_titles">
+        <item>Bounding Box</item>
+        <item>Bones</item>
+    </string-array>
     <string name="alt_bottom_sheet_threshold_button_minus">Decreasing
         threshold of recognized hand gesture results button</string>
     <string name="alt_bottom_sheet_threshold_button_plus">Increasing
         threshold of recognized hand gesture results button</string>
+    <string name="advanced_settings">Advanced settings</string>
 </resources>

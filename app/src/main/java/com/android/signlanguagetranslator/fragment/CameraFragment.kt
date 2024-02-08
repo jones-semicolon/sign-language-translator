@@ -1,6 +1,7 @@
 package com.android.signlanguagetranslator.fragment
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -79,6 +80,7 @@ class CameraFragment : Fragment(),
     private var torchState: LiveData<Int>? = null
     private var cameraControl: CameraControl? = null
     private var currentLabel: String? = null
+    private var handCoordinate: Int? = null
 
 
     private lateinit var backgroundExecutor: ExecutorService
@@ -115,8 +117,11 @@ class CameraFragment : Fragment(),
             viewModel.setMinHandTrackingConfidence(gestureRecognizerHelper.minHandTrackingConfidence)
             viewModel.setMinHandPresenceConfidence(gestureRecognizerHelper.minHandPresenceConfidence)
             viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
+            viewModel.setHandCoordinate(gestureRecognizerHelper.currentHandCoordinate)
             viewModel.setIsFacingFront(gestureRecognizerHelper.isFrontFacing)
             viewModel.setMinConfidence(gestureRecognizerHelper.minConfidence)
+            viewModel.setMinLabelDuration(gestureRecognizerHelper.minLabelDuration)
+            viewModel.setMinHandStableDuration(gestureRecognizerHelper.minHandStableDuration)
 
             // Close the Gesture Recognizer helper and release resources
             backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
@@ -174,13 +179,17 @@ class CameraFragment : Fragment(),
                 minHandPresenceConfidence = viewModel.currentMinHandPresenceConfidence,
                 minConfidence = viewModel.currentMinConfidence,
                 currentDelegate = viewModel.currentDelegate,
+                currentHandCoordinate = viewModel.currentHandCoordinate,
                 isFrontFacing = viewModel.currentIsFrontFacing,
+                minLabelDuration = viewModel.currentLabelDuration,
+                minHandStableDuration = viewModel.currentHandStableDuration,
                 gestureRecognizerListener = this
             )
         }
 
         if(this::gestureRecognizerHelper.isInitialized){
             Log.d("TAG", "open")
+            handCoordinate = viewModel.currentHandCoordinate
         } else {
             Log.d("TAG", "closed")
         }
@@ -200,6 +209,7 @@ class CameraFragment : Fragment(),
             findNavController().navigate(R.id.settings_fragment)
         }
         fragmentCameraBinding.topSheetLayout.button4.setOnClickListener {
+            if(!requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) return@setOnClickListener
             when (torchState?.value) {
                 TorchState.ON -> {
                     cameraControl?.enableTorch(false)
@@ -326,8 +336,8 @@ class CameraFragment : Fragment(),
                         Toast.makeText(requireContext(), "Image has been saved", Toast.LENGTH_SHORT).show()
                     }
                     Log.d(TAG, msg)
-                    if (currentLabel.isNullOrEmpty()) return
 
+                    if (currentLabel.isNullOrEmpty()) return
                     val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
                     val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
                     val canvas = Canvas(mutableBitmap)
@@ -388,13 +398,15 @@ class CameraFragment : Fragment(),
                     currentLabel = gestureRecognizerResultAdapter.getCurrentLabel()
                 } else {
                     gestureRecognizerResultAdapter.updateResults(emptyList())
+                    currentLabel = null
                 }
 
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
                     resultBundle.inputImageHeight,
                     resultBundle.inputImageWidth,
-                    RunningMode.LIVE_STREAM
+                    RunningMode.LIVE_STREAM,
+                    handCoordinate
                 )
 
                 fragmentCameraBinding.overlay.invalidate()

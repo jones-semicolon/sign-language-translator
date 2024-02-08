@@ -13,6 +13,7 @@ import com.android.signlanguagetranslator.databinding.ItemGestureRecognizerResul
 import com.google.mediapipe.tasks.components.containers.Category
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import kotlin.math.min
+import kotlin.math.roundToLong
 
 class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     RecyclerView.Adapter<GestureRecognizerResultsAdapter.ViewHolder>() {
@@ -25,7 +26,8 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     private var adapterSize: Int = 0
     private var resultList: MutableList<String> = mutableListOf()
     private var confidence: Float? = null
-    private var acceptDur: Long =  2000
+    private var handStableDuration: Float? = null
+    private var labelDuration: Float? = null
     private var currentLabelListener: CurrentLabelListener? = null
     private var newLabel: String? = null
 
@@ -77,7 +79,10 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                 minHandTrackingConfidence = viewModel.currentMinHandTrackingConfidence,
                 minHandPresenceConfidence = viewModel.currentMinHandPresenceConfidence,
                 minConfidence = viewModel.currentMinConfidence,
+                minLabelDuration = viewModel.currentLabelDuration,
+                minHandStableDuration = viewModel.currentHandStableDuration,
                 currentDelegate = viewModel.currentDelegate,
+                currentHandCoordinate = viewModel.currentHandCoordinate,
                 isFrontFacing = viewModel.currentIsFrontFacing,
             )
         }
@@ -88,14 +93,21 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             false
         )
         Log.d("TAG", "CREATED")
-        confidence = gestureRecognizerHelper.minConfidence
+        /*confidence = gestureRecognizerHelper.minConfidence
+        labelDuration = gestureRecognizerHelper.minLabelDuration
+        handStableDuration = gestureRecognizerHelper.minHandStableDuration*/
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         adapterCategories[position].let { category ->
             holder.bind(category?.categoryName(), category?.score())
+
+
         }
+        confidence = viewModel.currentMinConfidence
+        labelDuration = viewModel.currentLabelDuration
+        handStableDuration = viewModel.currentHandStableDuration
     }
 
     override fun getItemCount(): Int = adapterCategories.size
@@ -121,6 +133,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             // Check if the label is null or empty
 
             if (label.isNullOrEmpty()) {
+                log("$labelDuration and $handStableDuration")
                 if(label is String) {
                     clearTimer?.cancel()
                     return
@@ -160,7 +173,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                     prevLabel = newLabel
 
                     // Start a new timer for 5 seconds to add the label
-                    addTimer = object : CountDownTimer(acceptDur, 1000) {
+                    addTimer = object : CountDownTimer((handStableDuration?.times(1000L))!!.roundToLong(), 1000) {
                         override fun onTick(millisUntilFinished: Long) {
                             // Do nothing
                         }
@@ -194,7 +207,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                         prevLabel = newLabel
 
                         // Start a new timer for 5 seconds to add the label
-                        addTimer = object : CountDownTimer(acceptDur, 1000) {
+                        addTimer = object : CountDownTimer((handStableDuration?.times(1000L))!!.roundToLong(), 1000) {
                             override fun onTick(millisUntilFinished: Long) {
                                 // Do nothing
                             }
