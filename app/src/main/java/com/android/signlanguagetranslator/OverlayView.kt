@@ -61,6 +61,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+//Bones
         /*results?.let { gestureRecognizerResult ->
             for(landmark in gestureRecognizerResult.landmarks()) {
                 for(normalizedLandmark in landmark) {
@@ -80,6 +81,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 }
             }
         }*/
+
+//Bounding box
         results?.let { gestureRecognizerResult ->
             for (landmark in gestureRecognizerResult.landmarks()) {
                 val boundingBox = convertBoundingBox(landmark)
