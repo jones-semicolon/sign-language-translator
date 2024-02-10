@@ -261,7 +261,7 @@ class SettingsFragment : Fragment() {
             }
         }
         fragmentSettingsBinding.spinnerDelegate.setSelection(
-            viewModel.currentDelegate, false
+            viewModel.currentDelegate, true
         )
         fragmentSettingsBinding.spinnerDelegate.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {

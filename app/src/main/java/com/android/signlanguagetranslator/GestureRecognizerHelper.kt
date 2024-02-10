@@ -322,7 +322,6 @@ class GestureRecognizerHelper(
 
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
-        const val HAND_COORDINATE_BONES = 1
         const val HAND_COORDINATE_BOUNDING_BOX = 0
         const val ISFRONTFACING = true
         const val DEFAULT_HAND_DETECTION_CONFIDENCE = 0.5F

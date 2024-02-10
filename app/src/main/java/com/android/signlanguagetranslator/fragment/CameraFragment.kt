@@ -124,7 +124,7 @@ class CameraFragment : Fragment(),
             viewModel.setMinHandStableDuration(gestureRecognizerHelper.minHandStableDuration)
 
             // Close the Gesture Recognizer helper and release resources
-            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
+//            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
         }
     }
 
