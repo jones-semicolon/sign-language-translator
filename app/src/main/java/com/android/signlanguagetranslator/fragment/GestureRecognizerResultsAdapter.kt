@@ -6,12 +6,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.android.signlanguagetranslator.GestureRecognizerHelper
 import com.android.signlanguagetranslator.MainViewModel
 import com.android.signlanguagetranslator.databinding.ItemGestureRecognizerResultBinding
 import com.google.mediapipe.tasks.components.containers.Category
-import com.google.mediapipe.tasks.vision.core.RunningMode
 import kotlin.math.min
 import kotlin.math.roundToLong
 
@@ -31,6 +31,26 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     private var currentLabelListener: CurrentLabelListener? = null
     private var newLabel: String? = null
 
+    init {
+        viewModel.currentConfidenceThreshold.observeForever { confidence ->
+            confidence?.let {
+                updateConfidence(it)
+            }
+        }
+
+        viewModel.currentLabelDuration.observeForever { duration ->
+            duration?.let {
+                updateLabelDuration(it)
+            }
+        }
+
+        viewModel.currentHandStableDuration.observeForever { duration ->
+            duration?.let {
+                updateHandStableDuration(it)
+            }
+        }
+    }
+
 
     @SuppressLint("NotifyDataSetChanged")
     fun updateResults(categories: List<Category>?) {
@@ -41,7 +61,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             for (i in 0 until min) {
                 adapterCategories[i] = sortedCategories[i]
             }
-            adapterCategories.sortedBy { it?.index() }
+            adapterCategories = adapterCategories.sortedBy { it?.index() }.toMutableList()
             notifyDataSetChanged()
         }
         // Update the current label whenever the results are updated
@@ -58,20 +78,24 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
         confidence = _confidence
     }
 
+    fun updateLabelDuration(_labelDuration: Float) {
+        labelDuration = _labelDuration
+    }
+
+    fun updateHandStableDuration(_handStableDuration: Float) {
+        handStableDuration = _handStableDuration
+    }
+
     fun getCurrentLabel(): String {
         Log.d("RESULT",resultList.joinToString(""))
         return resultList.joinToString("")
-    }
-
-    fun setCurrentLabelListener(listener: CurrentLabelListener) {
-        currentLabelListener = listener
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): ViewHolder {
-        if (!this::gestureRecognizerHelper.isInitialized) {
+        /*if (!this::gestureRecognizerHelper.isInitialized) {
             gestureRecognizerHelper = GestureRecognizerHelper(
                 context = parent.context,
                 runningMode = RunningMode.LIVE_STREAM,
@@ -85,7 +109,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                 currentHandCoordinate = viewModel.currentHandCoordinate,
                 isFrontFacing = viewModel.currentIsFrontFacing,
             )
-        }
+        }*/
 
         val binding = ItemGestureRecognizerResultBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -93,9 +117,6 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             false
         )
         Log.d("TAG", "CREATED")
-        /*confidence = gestureRecognizerHelper.minConfidence
-        labelDuration = gestureRecognizerHelper.minLabelDuration
-        handStableDuration = gestureRecognizerHelper.minHandStableDuration*/
         return ViewHolder(binding)
     }
 
@@ -105,9 +126,6 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
 
 
         }
-        confidence = viewModel.currentMinConfidence
-        labelDuration = viewModel.currentLabelDuration
-        handStableDuration = viewModel.currentHandStableDuration
     }
 
     override fun getItemCount(): Int = adapterCategories.size
@@ -115,13 +133,16 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
 
     inner class ViewHolder(private val binding: ItemGestureRecognizerResultBinding) :
         RecyclerView.ViewHolder(binding.root) {
+            val lifecycleOwner = itemView.findViewTreeLifecycleOwner()
+
+
 
         private var clearTimer : CountDownTimer? = null
         private var prevLabel: String? = null
         private var addTimer: CountDownTimer? = null
         fun bind(label: String?, score: Float?) {
             with(binding) {
-                if (label.isNullOrEmpty() && resultList.isNullOrEmpty()){
+                if ((label.isNullOrEmpty() || label == "none") && resultList.isNullOrEmpty()){
                     linearLayout.visibility = View.INVISIBLE
                     return
                 }
@@ -143,7 +164,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                 addTimer?.cancel()
 
                 // Start a new timer for 5 seconds to clear the result list
-                clearTimer = object : CountDownTimer(5000, 1000) {
+                clearTimer = object : CountDownTimer((labelDuration?.times(1000L)!!.roundToLong()), 1000) {
                     override fun onTick(millisUntilFinished: Long) {
                         // Do nothing
                     }

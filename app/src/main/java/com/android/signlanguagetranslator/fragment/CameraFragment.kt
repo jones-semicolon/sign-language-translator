@@ -113,22 +113,25 @@ class CameraFragment : Fragment(),
         super.onPause()
         if (this::gestureRecognizerHelper.isInitialized) {
             Log.d("PAUSED", "UPDATE")
-            viewModel.setMinHandDetectionConfidence(gestureRecognizerHelper.minHandDetectionConfidence)
-            viewModel.setMinHandTrackingConfidence(gestureRecognizerHelper.minHandTrackingConfidence)
-            viewModel.setMinHandPresenceConfidence(gestureRecognizerHelper.minHandPresenceConfidence)
+            /*viewModel.setDetectionThreshold(gestureRecognizerHelper.minHandDetectionConfidence)
+            viewModel.setTrackingThreshold(gestureRecognizerHelper.minHandTrackingConfidence)
+            viewModel.setPresenceThreshold(gestureRecognizerHelper.minHandPresenceConfidence)
             viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
-            viewModel.setHandCoordinate(gestureRecognizerHelper.currentHandCoordinate)
+            viewModel.setCoordinate(gestureRecognizerHelper.currentHandCoordinate)
+            viewModel.setConfidenceThreshold(gestureRecognizerHelper.minConfidence)
+            viewModel.setLabelDuration(gestureRecognizerHelper.minLabelDuration)
+            viewModel.setHandStableDuration(gestureRecognizerHelper.minHandStableDuration)*/
             viewModel.setIsFacingFront(gestureRecognizerHelper.isFrontFacing)
-            viewModel.setMinConfidence(gestureRecognizerHelper.minConfidence)
-            viewModel.setMinLabelDuration(gestureRecognizerHelper.minLabelDuration)
-            viewModel.setMinHandStableDuration(gestureRecognizerHelper.minHandStableDuration)
 
             // Close the Gesture Recognizer helper and release resources
 //            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
         }
+        //resetTorchState
+        fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_off_24)
     }
 
     override fun onDestroyView() {
+        fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_off_24)
         _fragmentCameraBinding = null
         super.onDestroyView()
         // Unbind the camera provider
@@ -171,27 +174,17 @@ class CameraFragment : Fragment(),
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
         backgroundExecutor.execute {
+            // Initialize GestureRecognizerHelper here
             gestureRecognizerHelper = GestureRecognizerHelper(
                 context = requireContext(),
                 runningMode = RunningMode.LIVE_STREAM,
-                minHandDetectionConfidence = viewModel.currentMinHandDetectionConfidence,
-                minHandTrackingConfidence = viewModel.currentMinHandTrackingConfidence,
-                minHandPresenceConfidence = viewModel.currentMinHandPresenceConfidence,
-                minConfidence = viewModel.currentMinConfidence,
-                currentDelegate = viewModel.currentDelegate,
-                currentHandCoordinate = viewModel.currentHandCoordinate,
                 isFrontFacing = viewModel.currentIsFrontFacing,
-                minLabelDuration = viewModel.currentLabelDuration,
-                minHandStableDuration = viewModel.currentHandStableDuration,
                 gestureRecognizerListener = this
             )
         }
 
-        if(this::gestureRecognizerHelper.isInitialized){
-            Log.d("TAG", "open")
-            handCoordinate = viewModel.currentHandCoordinate
-        } else {
-            Log.d("TAG", "closed")
+        viewModel.currentCoordinate.observe(viewLifecycleOwner){ coordinate ->
+            handCoordinate = coordinate
         }
 
         fragmentCameraBinding.viewFinder.post {
@@ -227,11 +220,6 @@ class CameraFragment : Fragment(),
         }
     }
 
-    private fun getCurrentLabel(): String {
-        return gestureResults.getCurrentLabel()
-    }
-
-
     private fun rotateCameraLens() {
         // Toggle between front and back camera lenses
         Log.d("CAMERA LENS", "${gestureRecognizerHelper.isFrontFacing} ${cameraFacing}")
@@ -245,6 +233,7 @@ class CameraFragment : Fragment(),
             CameraSelector.LENS_FACING_FRONT
             cameraFacing = 0
         }
+        fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_off_24)
         bindCameraUseCases()
     }
 

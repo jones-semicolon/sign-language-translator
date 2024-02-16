@@ -29,6 +29,19 @@
     <string name="hand_stable_duration">Hand Stable duration</string>
     <string name="hand_coordinate">Hand Coordinate</string>
 
+    <string-array name="headers">
+        <item>header 1</item>
+        <item>header 2</item>
+        <item>header 3</item>
+        <item>header 4</item>
+    </string-array>
+    <string-array name="description">
+        <item>description 1</item>
+        <item>description 2</item>
+        <item>description 3</item>
+        <item>description 4</item>
+    </string-array>
+
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>
         <item>GPU</item>
@@ -42,4 +55,7 @@
     <string name="alt_bottom_sheet_threshold_button_plus">Increasing
         threshold of recognized hand gesture results button</string>
     <string name="advanced_settings">Advanced settings</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="label_hand_detection_confidence_threshold_desc">The minimum confidence score for the hand detection to be considered successful in palm detection model.</string>
 </resources>

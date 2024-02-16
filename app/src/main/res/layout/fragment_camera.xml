@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/camera_container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:screenOrientation="portrait">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/view_finder"
@@ -18,13 +20,15 @@
 
     <include
         android:id="@+id/bottom_sheet_layout"
-        layout="@layout/info_bottom_sheet" />
+        layout="@layout/info_bottom_sheet"
+        android:orientation="vertical"/>
 
     <include
         android:id="@+id/top_sheet_layout"
         layout="@layout/top_sheet_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_results"

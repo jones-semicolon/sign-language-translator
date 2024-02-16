@@ -1,24 +1,14 @@
 package com.android.signlanguagetranslator
 
 import android.os.Bundle
-import androidx.activity.viewModels
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.android.signlanguagetranslator.databinding.ActivityMainBinding
-import com.android.signlanguagetranslator.fragment.SettingsFragment
-import androidx.datastore.core.DataStore
-import android.content.Context
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
-    private val viewModel: MainViewModel by viewModels()
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-    val fragment = SettingsFragment()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -28,9 +18,14 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
         activityMainBinding.navigation.setupWithNavController(navController)
+        Log.d("LOG", "navcotroller has been setup")
         activityMainBinding.navigation.setOnNavigationItemReselectedListener {
             // ignore the reselection
         }
+        /*supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, InstructionFragment())
+            .commit()*/
+
     }
 
 

@@ -21,12 +21,12 @@ class GestureRecognizerHelper(
     var minHandDetectionConfidence: Float = DEFAULT_HAND_DETECTION_CONFIDENCE,
     var minHandTrackingConfidence: Float = DEFAULT_HAND_TRACKING_CONFIDENCE,
     var minHandPresenceConfidence: Float = DEFAULT_HAND_PRESENCE_CONFIDENCE,
-    var minConfidence: Float = DEFAULT_CONFIDENCE,
     var minLabelDuration: Float = LABEL_DURATION,
     var minHandStableDuration: Float = HAND_STABLE_DURATION,
+    var minConfidence: Float = DEFAULT_CONFIDENCE,
     var currentDelegate: Int = DELEGATE_CPU,
     var currentHandCoordinate: Int = HAND_COORDINATE_BOUNDING_BOX,
-    var runningMode: RunningMode = RunningMode.IMAGE,
+    var runningMode: RunningMode = RunningMode.LIVE_STREAM,
     var isFrontFacing: Boolean = ISFRONTFACING,
     val context: Context,
     val gestureRecognizerListener: GestureRecognizerListener? = null
@@ -318,7 +318,7 @@ class GestureRecognizerHelper(
 
     companion object {
         val TAG = "GestureRecognizerHelper ${this.hashCode()}"
-        private const val MP_RECOGNIZER_TASK = "gesture_recognizer.task"
+        private const val MP_RECOGNIZER_TASK = "slt_recognizer.task"
 
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
@@ -328,10 +328,11 @@ class GestureRecognizerHelper(
         const val DEFAULT_HAND_TRACKING_CONFIDENCE = 0.5F
         const val DEFAULT_HAND_PRESENCE_CONFIDENCE = 0.5F
         const val DEFAULT_CONFIDENCE = 0.5F
-        const val OTHER_ERROR = 0
-        const val GPU_ERROR = 1
         const val LABEL_DURATION = 10f
         const val HAND_STABLE_DURATION = 5f
+        const val OTHER_ERROR = 0
+        const val GPU_ERROR = 1
+
     }
 
     data class ResultBundle(
