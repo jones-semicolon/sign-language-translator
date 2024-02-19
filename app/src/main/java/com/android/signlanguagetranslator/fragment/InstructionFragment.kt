@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.viewpager.widget.ViewPager
 import com.android.signlanguagetranslator.MainViewModel
 import com.android.signlanguagetranslator.R
@@ -47,9 +48,9 @@ class InstructionFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        /*viewModel.currentStartup.observe(viewLifecycleOwner){
+        viewModel.currentStartup.observe(viewLifecycleOwner){
             if (it) findNavController().navigate(R.id.action_instruction_to_permissions)
-        }*/
+        }
 
         slideViewPager = fragmentInstructionBinding.slideViewPager
         dotLayout = fragmentInstructionBinding.indicatorLayout
@@ -70,7 +71,7 @@ class InstructionFragment: Fragment() {
             }
         }
         fragmentInstructionBinding.nextbtn.setOnClickListener{
-            if (getitem(0) < 3) slideViewPager.setCurrentItem(getitem(1), true) else {
+            if (getitem(0) < 4) slideViewPager.setCurrentItem(getitem(1), true) else {
                 viewModel.setStartup(true)
                 Navigation.findNavController(
                     requireActivity(), R.id.fragment_container
@@ -80,7 +81,7 @@ class InstructionFragment: Fragment() {
     }
 
     fun setUpindicator(position: Int) {
-        val dots: Array<TextView?> = arrayOfNulls(4)
+        val dots: Array<TextView?> = arrayOfNulls(5)
         dotLayout.removeAllViews()
         for (i in dots.indices) {
             dots[i] = TextView(requireContext())

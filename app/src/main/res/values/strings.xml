@@ -29,17 +29,13 @@
     <string name="hand_stable_duration">Hand Stable duration</string>
     <string name="hand_coordinate">Hand Coordinate</string>
 
-    <string-array name="headers">
-        <item>header 1</item>
-        <item>header 2</item>
-        <item>header 3</item>
-        <item>header 4</item>
-    </string-array>
-    <string-array name="description">
-        <item>description 1</item>
-        <item>description 2</item>
-        <item>description 3</item>
-        <item>description 4</item>
+
+    <string-array name="instruction">
+        <item>Sign Language Translator</item>
+        <item>Do ASL gesture and let our model guess it.</item>
+        <item>Capture it together with the result gesture</item>
+        <item>rotate or open the flashlight like a normal camera does</item>
+        <item>Tweak everything depends on how you want the model behaves</item>
     </string-array>
 
     <string-array name="delegate_spinner_titles">
@@ -58,4 +54,7 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="label_hand_detection_confidence_threshold_desc">The minimum confidence score for the hand detection to be considered successful in palm detection model.</string>
+    <string name="label_hand_detection_tracking_threshold_desc">The minimum confidence score for the hand tracking to be considered successful.</string>
+    <string name="label_hand_detection_presence_threshold_desc">The minimum confidence score of hand presence score in the hand landmark detection model.</string>
+    <string name="label_hand_confidence_threshold_desc">The minimum confidence score of hand presence score in the hand landmark detection model.The minimum confidence score of hand presence score in the hand landmark detection model.</string>
 </resources>

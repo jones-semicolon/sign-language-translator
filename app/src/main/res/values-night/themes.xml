@@ -7,6 +7,10 @@
         <item name="android:tint">@android:color/white</item>
         <item name="colorPrimary">@color/mp_color_primary</item>
         <item name="android:textColorSecondary">#52FFFFFF</item>
+        <item name="colorButtonNormal">#FFFFFF</item>
+        <item name="backgroundColor">@color/black</item>
+        <item name="colorOnTertiaryContainer">#1BFFFFFF</item>
+        <item name="lottieColor">@color/white</item>
     </style>
 
     <style name="ThemeOverlay.SignLanguageTranslator.FullscreenContainer" parent="">

@@ -81,6 +81,8 @@ class CameraFragment : Fragment(),
     private var cameraControl: CameraControl? = null
     private var currentLabel: String? = null
     private var handCoordinate: Int? = null
+    private var videoCapture = null
+    private var isRecording: Boolean = false
 
 
     private lateinit var backgroundExecutor: ExecutorService
@@ -182,10 +184,28 @@ class CameraFragment : Fragment(),
                 gestureRecognizerListener = this
             )
         }
+        /*videoCapture = VideoCapture.Builder()
+            .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
+            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+            .build()*/
 
         viewModel.currentCoordinate.observe(viewLifecycleOwner){ coordinate ->
             handCoordinate = coordinate
         }
+
+        /*fragmentCameraBinding.bottomSheetLayout.button2.setOnLongClickListener {
+            if (!isRecording) {
+                startRecording()
+            }
+            true // Return true to indicate that the event has been consumed
+        }
+
+        fragmentCameraBinding.bottomSheetLayout.button2.setOnTouchListener{_, event ->
+            if(event.action == MotionEvent.ACTION_UP && isRecording){
+                stopRecording()
+            }
+            false
+        }*/
 
         fragmentCameraBinding.viewFinder.post {
             setUpCamera()
@@ -219,6 +239,54 @@ class CameraFragment : Fragment(),
             }
         }
     }
+
+    /*private fun stopRecording(){
+        videoCapture?.stopRecording()
+        isRecording = false
+    }*/
+
+    private fun generateFile(isImage: Boolean = true): File {
+        val currentFile = if (isImage) "image" else "video"
+        val currentExt = if (isImage) "jpeg" else "mp4"
+        val appFolder = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
+            "SLT"
+        )
+
+        // Create the directory if it doesn't exist
+        if (!appFolder.exists()) {
+            val isDirectoryCreated = appFolder.mkdirs()
+            if (!isDirectoryCreated) {
+                // Directory creation failed
+                Log.e(TAG, "Failed to create directory")
+            }
+        }
+
+        val outputFile = File(
+            appFolder,
+            "${currentFile}_${System.currentTimeMillis()}.${currentExt}"
+        )
+        return outputFile
+    }
+
+    /*private fun startRecording(){
+        val videoFile = generateFile(false)
+
+        videoCapture?.startRecording(
+            outputOptions,
+            backgroundExecutor,
+            object : VideoCapture.OnVideoSavedCallback {
+                override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
+                    // Show a toast message or handle success
+                }
+
+                override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
+                    // Show a toast message or handle error
+                }
+            }
+        )
+        isRecording = true
+    }*/
 
     private fun rotateCameraLens() {
         // Toggle between front and back camera lenses
@@ -280,10 +348,11 @@ class CameraFragment : Fragment(),
                     }
                 }
         imageCapture = ImageCapture.Builder()
-//            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
             .build()
+
 
         cameraProvider.unbindAll()
 
@@ -308,9 +377,10 @@ class CameraFragment : Fragment(),
         // Check if the image capture use case is null
         if (imageCapture == null) return
         // Create a file to store the image
-        val photoFile = File(
+        val photoFile = generateFile()
+        /*val photoFile = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera",
-            "photo_${System.currentTimeMillis()}.jpg")
+            "photo_${System.currentTimeMillis()}.jpg")*/
         // Create an output options object
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
         // Take a picture and save it to the file

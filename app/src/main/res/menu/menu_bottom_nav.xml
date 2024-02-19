@@ -15,8 +15,4 @@
     ~ limitations under the License.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@id/camera_fragment"
-        android:icon="@drawable/ic_baseline_photo_camera_24"
-        android:title="Camera" />
 </menu>

@@ -35,21 +35,6 @@
                 android:layout_height="wrap_content" />
         </androidx.appcompat.widget.Toolbar>
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/navigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/toolbar"
-            android:background="#00FFFFFF"
-            android:visibility="gone"
-            app:menu="@menu/menu_bottom_nav" />
 
-        <View
-            android:id="@+id/view"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/navigation"
-            android:background="@android:color/darker_gray"
-            android:visibility="gone" />
     </RelativeLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

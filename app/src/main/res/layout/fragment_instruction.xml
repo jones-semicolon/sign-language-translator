@@ -53,7 +53,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginVertical="100dp"
-            android:backgroundTint="#0000FF"
             app:layout_constraintBottom_toBottomOf="@id/indicator_layout"
             tools:layout_editor_absoluteX="16dp" />
 

@@ -2,9 +2,10 @@ package com.android.signlanguagetranslator
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.android.signlanguagetranslator.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -17,18 +18,17 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
-        activityMainBinding.navigation.setupWithNavController(navController)
         Log.d("LOG", "navcotroller has been setup")
-        activityMainBinding.navigation.setOnNavigationItemReselectedListener {
+        /*activityMainBinding.navigation.setOnNavigationItemReselectedListener {
             // ignore the reselection
-        }
-        /*supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, InstructionFragment())
-            .commit()*/
+        }*/
+
+
 
     }
 
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val fragmentManager = supportFragmentManager
         if (fragmentManager.backStackEntryCount > 0) {

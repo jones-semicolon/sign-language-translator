@@ -113,6 +113,16 @@ class SettingsFragment : Fragment() {
             )
         }
 
+        /*val delegateAdapter = ArrayAdapter<String>(requireContext(),  R.layout.simple_spinner_item, resources.getStringArray(
+            com.android.signlanguagetranslator.R.array.delegate_spinner_titles))
+        val handCoordinateAdapter = ArrayAdapter<String>(requireContext(), R.layout.simple_spinner_item, resources.getStringArray(
+            com.android.signlanguagetranslator.R.array.hand_coordinate_spinner_titles))
+        delegateAdapter.setDropDownViewResource(com.android.signlanguagetranslator.R.layout.spinner_dropdown)
+        handCoordinateAdapter.setDropDownViewResource(com.android.signlanguagetranslator.R.layout.spinner_dropdown)
+        fragmentSettingsBinding.spinnerDelegate.adapter = delegateAdapter
+        fragmentSettingsBinding.spinnerDelegate.adapter = handCoordinateAdapter
+        fragmentSettingsBinding.spinnerDelegate.pop*/
+
         fragmentSettingsBinding.button7.setOnClickListener {
 //            findNavController().navigate(R.id.camera_fragment)
             findNavController().popBackStack()
