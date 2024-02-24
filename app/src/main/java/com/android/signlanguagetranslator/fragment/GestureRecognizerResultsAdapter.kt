@@ -95,22 +95,6 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
         parent: ViewGroup,
         viewType: Int
     ): ViewHolder {
-        /*if (!this::gestureRecognizerHelper.isInitialized) {
-            gestureRecognizerHelper = GestureRecognizerHelper(
-                context = parent.context,
-                runningMode = RunningMode.LIVE_STREAM,
-                minHandDetectionConfidence = viewModel.currentMinHandDetectionConfidence,
-                minHandTrackingConfidence = viewModel.currentMinHandTrackingConfidence,
-                minHandPresenceConfidence = viewModel.currentMinHandPresenceConfidence,
-                minConfidence = viewModel.currentMinConfidence,
-                minLabelDuration = viewModel.currentLabelDuration,
-                minHandStableDuration = viewModel.currentHandStableDuration,
-                currentDelegate = viewModel.currentDelegate,
-                currentHandCoordinate = viewModel.currentHandCoordinate,
-                isFrontFacing = viewModel.currentIsFrontFacing,
-            )
-        }*/
-
         val binding = ItemGestureRecognizerResultBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,

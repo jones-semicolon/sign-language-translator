@@ -35,9 +35,6 @@ class SettingsFragment : Fragment() {
             updateAdapterSize(defaultNumResults)
         }
     }
-    private var DELEGATE: Int? = null
-    private var COORDINATE: Int? = null
-
     private lateinit var backgroundExecutor: ExecutorService
 
     override fun onResume() {
@@ -113,18 +110,7 @@ class SettingsFragment : Fragment() {
             )
         }
 
-        /*val delegateAdapter = ArrayAdapter<String>(requireContext(),  R.layout.simple_spinner_item, resources.getStringArray(
-            com.android.signlanguagetranslator.R.array.delegate_spinner_titles))
-        val handCoordinateAdapter = ArrayAdapter<String>(requireContext(), R.layout.simple_spinner_item, resources.getStringArray(
-            com.android.signlanguagetranslator.R.array.hand_coordinate_spinner_titles))
-        delegateAdapter.setDropDownViewResource(com.android.signlanguagetranslator.R.layout.spinner_dropdown)
-        handCoordinateAdapter.setDropDownViewResource(com.android.signlanguagetranslator.R.layout.spinner_dropdown)
-        fragmentSettingsBinding.spinnerDelegate.adapter = delegateAdapter
-        fragmentSettingsBinding.spinnerDelegate.adapter = handCoordinateAdapter
-        fragmentSettingsBinding.spinnerDelegate.pop*/
-
         fragmentSettingsBinding.button7.setOnClickListener {
-//            findNavController().navigate(R.id.camera_fragment)
             findNavController().popBackStack()
         }
 
@@ -271,35 +257,6 @@ class SettingsFragment : Fragment() {
                 )
         }
 
-        // When clicked, lower hand detection score threshold floor
-
-
-        // When clicked, raise hand detection score threshold floor
-
-
-        // When clicked, lower hand tracking score threshold floor
-
-
-        // When clicked, raise hand tracking score threshold floor
-
-
-        // When clicked, lower hand presence score threshold floor
-
-
-        // When clicked, raise hand presence score threshold floor
-
-
-        // When clicked, lower hand detection score threshold floor
-
-
-        // When clicked, raise hand detection score threshold floor
-
-
-
-
-
-
-        // When clicked, change the underlying hardware used for inference.
         // Current options are CPU and GPU
         fragmentSettingsBinding.advancedSettingsBut.setOnClickListener{
             if (fragmentSettingsBinding.advancedSettingsRow.visibility == View.VISIBLE) {
@@ -308,6 +265,7 @@ class SettingsFragment : Fragment() {
             } else {
                 fragmentSettingsBinding.advancedSettingsChevron.rotation = 270f
                 fragmentSettingsBinding.advancedSettingsRow.visibility = View.VISIBLE
+                updateControlsUi()
             }
         }
 
@@ -316,13 +274,6 @@ class SettingsFragment : Fragment() {
                 override fun onItemSelected(
                     p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long
                 ) {
-                    /*try {
-                        gestureRecognizerHelper.currentDelegate = p2
-                        updateControlsUi()
-                    } catch (e: UninitializedPropertyAccessException) {
-                        Log.e(TAG, "GestureRecognizerHelper has not been initialized yet.")
-
-                    }*/
                     viewModel.setDelegate(p2)
                 }
 
@@ -336,13 +287,6 @@ class SettingsFragment : Fragment() {
                 override fun onItemSelected(
                     p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long
                 ) {
-                    /*try {
-                        gestureRecognizerHelper.currentHandCoordinate = p2
-                        updateControlsUi()
-                    } catch (e: UninitializedPropertyAccessException) {
-                        Log.e(TAG, "GestureRecognizerHelper has not been initialized yet.")
-
-                    }*/
                     viewModel.setCoordinate(p2)
                 }
 
@@ -408,6 +352,16 @@ class SettingsFragment : Fragment() {
                     "%.2f",
                     res
                 )
+        }
+
+        viewModel.currentDelegate.observe(viewLifecycleOwner){
+                res ->
+            fragmentSettingsBinding.spinnerDelegate.setSelection(res)
+        }
+
+        viewModel.currentCoordinate.observe(viewLifecycleOwner){
+                res ->
+            fragmentSettingsBinding.spinnerHandCoordinate.setSelection(res)
         }
 
 

@@ -450,14 +450,14 @@ class CameraFragment : Fragment(),
             if (_fragmentCameraBinding != null) {
                 // Show result of recognized gesture
                 val gestureCategories = resultBundle.results.first().gestures()
-                if (gestureCategories.isNotEmpty()) {
+                currentLabel = if (gestureCategories.isNotEmpty()) {
                     gestureRecognizerResultAdapter.updateResults(
                         gestureCategories.first()
                     )
-                    currentLabel = gestureRecognizerResultAdapter.getCurrentLabel()
+                    gestureRecognizerResultAdapter.getCurrentLabel()
                 } else {
                     gestureRecognizerResultAdapter.updateResults(emptyList())
-                    currentLabel = null
+                    null
                 }
 
                 fragmentCameraBinding.overlay.setResults(
