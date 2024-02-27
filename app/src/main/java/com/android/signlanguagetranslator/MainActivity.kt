@@ -21,10 +21,10 @@ class MainActivity : AppCompatActivity() {
             // ignore the reselection
         }*/
         // Instantiate ModelDownloader
-        val modelDownloader = ModelDownloader(this)
+        /*val modelDownloader = ModelDownloader(this)
 
         // Call downloadModelIfNeeded to start downloading the model if needed
-        modelDownloader.downloadModelIfNeeded()
+        modelDownloader.downloadModelIfNeeded()*/
     }
 
 
