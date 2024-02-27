@@ -85,6 +85,7 @@ class CameraFragment : Fragment(),
     private var isRecording: Boolean = false
 
 
+
     private lateinit var backgroundExecutor: ExecutorService
 
     override fun onResume() {
@@ -115,18 +116,8 @@ class CameraFragment : Fragment(),
         super.onPause()
         if (this::gestureRecognizerHelper.isInitialized) {
             Log.d("PAUSED", "UPDATE")
-            /*viewModel.setDetectionThreshold(gestureRecognizerHelper.minHandDetectionConfidence)
-            viewModel.setTrackingThreshold(gestureRecognizerHelper.minHandTrackingConfidence)
-            viewModel.setPresenceThreshold(gestureRecognizerHelper.minHandPresenceConfidence)
-            viewModel.setDelegate(gestureRecognizerHelper.currentDelegate)
-            viewModel.setCoordinate(gestureRecognizerHelper.currentHandCoordinate)
-            viewModel.setConfidenceThreshold(gestureRecognizerHelper.minConfidence)
-            viewModel.setLabelDuration(gestureRecognizerHelper.minLabelDuration)
-            viewModel.setHandStableDuration(gestureRecognizerHelper.minHandStableDuration)*/
             viewModel.setIsFacingFront(gestureRecognizerHelper.isFrontFacing)
 
-            // Close the Gesture Recognizer helper and release resources
-//            backgroundExecutor.execute { gestureRecognizerHelper.clearGestureRecognizer() }
         }
         //resetTorchState
         fragmentCameraBinding.topSheetLayout.button4.setBackgroundResource(R.drawable.baseline_flashlight_off_24)
@@ -138,10 +129,6 @@ class CameraFragment : Fragment(),
         super.onDestroyView()
         // Unbind the camera provider
         cameraProvider?.unbindAll()
-
-/*// Release the SurfaceView resources
-        fragmentCameraBinding.viewFinder.holder.removeCallback(this)
-        fragmentCameraBinding.viewFinder.release()*/
 
 
         // Shut down our background executor
@@ -184,6 +171,7 @@ class CameraFragment : Fragment(),
                 gestureRecognizerListener = this
             )
         }
+
         /*videoCapture = VideoCapture.Builder()
             .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)

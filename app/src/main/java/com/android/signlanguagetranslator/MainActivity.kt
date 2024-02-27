@@ -2,8 +2,6 @@ package com.android.signlanguagetranslator
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.ArrayAdapter
-import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.android.signlanguagetranslator.databinding.ActivityMainBinding
@@ -22,9 +20,11 @@ class MainActivity : AppCompatActivity() {
         /*activityMainBinding.navigation.setOnNavigationItemReselectedListener {
             // ignore the reselection
         }*/
+        // Instantiate ModelDownloader
+        val modelDownloader = ModelDownloader(this)
 
-
-
+        // Call downloadModelIfNeeded to start downloading the model if needed
+        modelDownloader.downloadModelIfNeeded()
     }
 
 

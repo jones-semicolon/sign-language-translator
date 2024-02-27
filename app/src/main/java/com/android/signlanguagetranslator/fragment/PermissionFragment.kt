@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,9 +21,10 @@ import com.android.signlanguagetranslator.R
  */
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 
+
 class PermissionsFragment : Fragment() {
 
-    private val requestPermissionLauncher =
+    private val requestPermissionLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
@@ -38,12 +41,12 @@ class PermissionsFragment : Fragment() {
                     "Permission request denied",
                     Toast.LENGTH_LONG
                 ).show()
+                ActivityCompat.finishAffinity(requireActivity())
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         when (PackageManager.PERMISSION_GRANTED) {
             ContextCompat.checkSelfPermission(
@@ -52,14 +55,12 @@ class PermissionsFragment : Fragment() {
             ) -> {
                 navigateToCamera()
             }
+
             else -> {
-                requestPermissionLauncher.launch(
-                    Manifest.permission.CAMERA
-                )
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
         }
     }
-
 
     private fun navigateToCamera() {
         lifecycleScope.launchWhenStarted {
