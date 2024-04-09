@@ -2,6 +2,7 @@ package com.android.signlanguagetranslator.fragment
 
 import android.annotation.SuppressLint
 import android.os.CountDownTimer
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import com.android.signlanguagetranslator.GestureRecognizerHelper
 import com.android.signlanguagetranslator.MainViewModel
 import com.android.signlanguagetranslator.databinding.ItemGestureRecognizerResultBinding
 import com.google.mediapipe.tasks.components.containers.Category
+import java.util.Locale
 import kotlin.math.min
 import kotlin.math.roundToLong
 
@@ -22,6 +24,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     }
 
     private lateinit var gestureRecognizerHelper: GestureRecognizerHelper
+    private lateinit var textToSpeech: TextToSpeech
     private var adapterCategories: MutableList<Category?> = mutableListOf()
     private var adapterSize: Int = 0
     private var resultList: MutableList<String> = mutableListOf()
@@ -30,6 +33,10 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
     private var labelDuration: Float? = null
     private var currentLabelListener: CurrentLabelListener? = null
     private var newLabel: String? = null
+    private var clearTimer : CountDownTimer? = null
+    private var prevLabel: String? = null
+    private var addTimer: CountDownTimer? = null
+    private var prevRes: String? = null
 
     init {
         viewModel.currentConfidenceThreshold.observeForever { confidence ->
@@ -100,6 +107,15 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
             parent,
             false
         )
+        textToSpeech = TextToSpeech(parent.context){status ->
+            if(status == TextToSpeech.SUCCESS){
+                val result = textToSpeech.setLanguage(Locale.getDefault())
+                if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED){
+                    Log.d("TTS", "TTS Error")
+                }
+            }
+        }
         Log.d("TAG", "CREATED")
         return ViewHolder(binding)
     }
@@ -117,35 +133,39 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
 
     inner class ViewHolder(private val binding: ItemGestureRecognizerResultBinding) :
         RecyclerView.ViewHolder(binding.root) {
-            val lifecycleOwner = itemView.findViewTreeLifecycleOwner()
+        val lifecycleOwner = itemView.findViewTreeLifecycleOwner()
 
-
-
-        private var clearTimer : CountDownTimer? = null
-        private var prevLabel: String? = null
-        private var addTimer: CountDownTimer? = null
         fun bind(label: String?, score: Float?) {
             with(binding) {
-                if ((label.isNullOrEmpty() || label == "none") && resultList.isNullOrEmpty()){
-                    linearLayout.visibility = View.INVISIBLE
-                    return
+                if (label.isNullOrEmpty() || label == "none") {
+                    addTimer?.cancel()
+                    log(addTimer.toString(), "CONTENT")
+                    if(resultList.isNullOrEmpty()) {
+                        linearLayout.visibility = View.INVISIBLE
+                        return
+                    }
                 }
-                val newLabel = label?.replace("space", " ")
+                val newLabel = label?.replace(Regex("space|_"), " ")
                 linearLayout.visibility = View.VISIBLE
                 resultLabel.text = resultList.joinToString("")
                 tvLabel.text = newLabel
             }
             // Check if the label is null or empty
-
+            log("TEST", addTimer.toString())
             if (label.isNullOrEmpty()) {
                 log("$labelDuration and $handStableDuration")
                 if(label is String) {
+
                     clearTimer?.cancel()
                     return
                 }
+                if((prevRes == null || prevRes != resultList.joinToString("")) && resultList.isNotEmpty()){
+                    textToSpeech.speak(resultList.joinToString(""), TextToSpeech.QUEUE_FLUSH, null, null)
+                    prevRes = resultList.joinToString("")
+                }
                 // Cancel the add timer
-                log(label?:2::class.simpleName.toString(), "CONTENT CHECKING")
-                addTimer?.cancel()
+                log(addTimer.toString(), "CONTENT")
+
 
                 // Start a new timer for 5 seconds to clear the result list
                 clearTimer = object : CountDownTimer((labelDuration?.times(1000L)!!.roundToLong()), 1000) {
@@ -163,7 +183,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                     }
                 }.start()
             } else {
-                newLabel = label.replace("space", " ")
+                newLabel = label.replace(Regex("space|_"), " ")
 
                 // Cancel the clear timer
                 clearTimer?.cancel()
@@ -188,6 +208,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                                 resultList.removeLastOrNull()
                                 currentLabelListener?.onCurrentLabelChanged(getCurrentLabel())
                                 prevLabel = null
+                                prevRes = null
                                 addTimer = null
                                 return
                             }
@@ -197,6 +218,7 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
                             // Reset the previous label and the add timer
                             prevLabel = null
                             addTimer = null
+                            prevRes = null
                         }
                     }.start()
                 } else {
@@ -247,4 +269,3 @@ class GestureRecognizerResultsAdapter(private val viewModel: MainViewModel) :
         fun onCurrentLabelChanged(currentLabel: String?)
     }
 }
-

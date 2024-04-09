@@ -72,6 +72,7 @@ class GestureRecognizerHelper(
                     .setBaseOptions(baseOptions)
                     .setMinHandDetectionConfidence(minHandDetectionConfidence)
                     .setMinTrackingConfidence(minHandTrackingConfidence)
+                    .setNumHands(2)
                     .setMinHandPresenceConfidence(minHandPresenceConfidence)
                     .setRunningMode(runningMode)
 
@@ -318,7 +319,7 @@ class GestureRecognizerHelper(
 
     companion object {
         val TAG = "GestureRecognizerHelper ${this.hashCode()}"
-        private const val MP_RECOGNIZER_TASK = "slt_recognizer.task"
+        private const val MP_RECOGNIZER_TASK = "gesture_recognizer.task"
 
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
